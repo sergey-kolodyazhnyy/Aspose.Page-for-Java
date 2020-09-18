@@ -21,32 +21,44 @@ public class AddEllipse {
     
     public static void main(String[] args) throws Exception
     {
-        //ExStart:AddEllipse
+        //ExStart:AddGrid
         // The path to the documents directory.
         String dataDir = Utils.getDataDir();
+
         // Create new XPS Document
         XpsDocument doc = new XpsDocument();
-        // Radial gradient stroked ellipse in the lower left
-        List<XpsGradientStop> stops = new LinkedList<XpsGradientStop>();
+        
+        // Geometry for magenta grid VisualBrush
+        XpsPathGeometry pathGeometry = doc.createPathGeometry();
+        pathGeometry.addSegment(doc.createPolyLineSegment(
+            new Point2D.Float[] { new Point2D.Float(240f, 5f), new Point2D.Float(240f, 310f), new Point2D.Float(0f, 310f) }));
+        pathGeometry.get(0).setStartPoint(new Point2D.Float(0f, 5f));
 
-        // Radial gradient stroked ellipse in the lower left
-        stops.add(doc.createGradientStop(doc.createColor(0, 0, 255), 0f));
-        stops.add(doc.createGradientStop(doc.createColor(255, 0, 0), .25f));
-        stops.add(doc.createGradientStop(doc.createColor(0, 255, 0), .5f));
-        stops.add(doc.createGradientStop(doc.createColor(255, 255, 0), .75f));
-        stops.add(doc.createGradientStop(doc.createColor(255, 0, 0), 1f));
-        XpsPath path = doc.addPath(doc.createPathGeometry("M 20,250 A 100,50 0 1 1 220,250 100,50 0 1 1 20,250"));
+        // Canvas for magenta grid VisualBrush
+        XpsCanvas visualCanvas = doc.createCanvas();
+        XpsPath visualPath = visualCanvas.addPath(
+            doc.createPathGeometry("M 0,4 L 4,4 4,0 6,0 6,4 10,4 10,6 6,6 6,10 4,10 4,6 0,6 Z"));
+        visualPath.setFill(doc.createSolidColorBrush(doc.createColor(1f, .61f, 0.1f, 0.61f)));
+
+        XpsPath gridPath = doc.createPath(pathGeometry);
+        //Create Visual Brush, it is specified by some XPS fragment (vector graphics and glyphs)
+        gridPath.setFill(doc.createVisualBrush(visualCanvas,
+            new Rectangle2D.Float(0f, 0f, 10f, 10f), new Rectangle2D.Float(0f, 0f, 10f, 10f)));
+        ((XpsVisualBrush)gridPath.getFill()).setTileMode(XpsTileMode.Tile);
+        
         // New canvas
         XpsCanvas canvas = doc.addCanvas();
-        path = canvas.addPath(path);
-        path.setStroke(doc.createRadialGradientBrush(new Point2D.Float(575f, 125f), new Point2D.Float(575f, 100f), 75f, 50f));
-        ((XpsGradientBrush)path.getStroke()).setSpreadMethod(XpsSpreadMethod.Reflect);
-        ((XpsGradientBrush)path.getStroke()).getGradientStops().addAll(stops);
-        stops.clear();
-        path.setStrokeThickness(12f);
+        canvas.setRenderTransform(doc.createMatrix(1f, 0f, 0f, 1f, 268f, 70f));
+        // Add grid
+        canvas.add(gridPath); // canvas.addPath(pathGeometry);
+        // Red transparent rectangle in the middle top
+        XpsPath //path = canvas.addPath(doc.createPathGeometry("M 30,20 l 258.24,0 0,56.64 -258.24,0 Z"));
+        path = canvas.addPath(doc.createPathGeometry("M 10,10 L 228,10 228,100 10,100"));
+        path.setFill(doc.createSolidColorBrush(doc.createColor(1.0f, 0.0f, 0.0f)));
+        path.setOpacity(0.7f);
         // Save resultant XPS document
-        doc.save(dataDir + "AddEllipse_out.xps");
-        //ExEnd:AddEllipse
+        doc.save(dataDir + "AddGrid_out.xps");
+        // ExEnd:1
     }
 
     
